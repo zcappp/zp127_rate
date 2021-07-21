@@ -52,7 +52,7 @@ $plugin({
         prop: "readonly",
         type: "text",
         label: "只读表达式",
-        ph: "选填，值为真时只读"
+        ph: "选填，值为真时只读，使用括弧"
     }, {
         prop: "onChange",
         type: "exp",
