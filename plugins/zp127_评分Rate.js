@@ -16,7 +16,7 @@ function render(ref) {
 function click(ref, v) {
     if (ref.props.readonly) return
     ref.setForm(ref.props.dbf, v)
-    if (ref.props.change) ref.exc(ref.props.change, { ...ref.ctx, $x: v }, () => ref.exc("render()"))
+    if (ref.props.change) ref.exc(ref.props.change, { ...ref.ctx, $val: v }, () => ref.exc("render()"))
 }
 
 const css = `
