@@ -3,20 +3,21 @@ import React from "react"
 const RATES = [1, 2, 3, 4, 5]
 
 function render(ref) {
-    if (!ref.props.dbf) return <div>请配置表单字段</div>
-    const value = ref.getForm(ref.props.dbf)
+    const { props, getForm } = ref
+    const value = getForm && props.dbf ? getForm(props.dbf) : (ref.value || 0)
     return RATES.map(v => <span
         className={v <= (ref.rate || value) ? "zp127item zp127rated" : "zp127item"}
-        onClick={() => click(ref, v)}
-        onMouseEnter={() => {if(!ref.props.readonly) { ref.rate = v; ref.render() }}} onMouseLeave={() => {delete ref.rate; ref.render()}} key={v}>
-        {SVG[ref.props.style || "星形"] || ref.props.style}
+        onClick={e => click(e, ref, v)}
+        onMouseEnter={() => {if(!props.readonly) { ref.rate = v; ref.render() }}} onMouseLeave={() => {delete ref.rate; ref.render()}} key={v}>
+        {SVG[props.style || "星形"] || props.style}
     </span>)
 }
 
-function click(ref, v) {
-    if (ref.props.readonly) return
-    ref.setForm(ref.props.dbf, v)
-    if (ref.props.change) ref.exc(ref.props.change, { ...ref.ctx, $val: v }, () => ref.exc("render()"))
+function click(e, ref, v) {
+    const { props, setForm } = ref
+    if (props.readonly) return
+    setForm && props.dbf ? setForm(props.dbf, v) : ref.value = v
+    if (props.change) ref.exc(props.change, { ...ref.ctx, $val: v }, () => ref.exc("render()"))
 }
 
 const css = `
@@ -54,9 +55,14 @@ $plugin({
         label: "只读表达式",
         ph: "选填，值为真时只读，使用括弧"
     }, {
+        prop: "p.val",
+        label: "初始值",
+        ph: "通常不填，根据字段名自动从表单容器获取"
+    }, {
         prop: "change",
         type: "exp",
-        label: "onChange表达式"
+        label: "onChange表达式",
+        ph: "$val"
     }],
     render,
     css
