@@ -3,10 +3,18 @@ import React from "react"
 const RATES = [1, 2, 3, 4, 5]
 
 function render(ref) {
-    const { props, getForm } = ref
-    const value = getForm && props.dbf ? getForm(props.dbf) : (ref.value || 0)
+    let { props } = ref
+    let { dbf, form } = props
+    let val
+    if (form) {
+        ref.form = typeof form == "string" ? ref.excA(form) : form
+        if (typeof ref.form == "object") val = ref.form[dbf]
+    } else if (ref.getForm) {
+        val = ref.getForm(dbf)
+    }
+    if (!val) val = ref.value || 0
     return RATES.map(v => <span
-        className={v <= (ref.rate || value) ? "zp127item zp127rated" : "zp127item"}
+        className={v <= (ref.rate || val) ? "zp127item zp127rated" : "zp127item"}
         onClick={e => click(e, ref, v)}
         onMouseEnter={() => {if(!props.readonly) { ref.rate = v; ref.render() }}} onMouseLeave={() => {delete ref.rate; ref.render()}} key={v}>
         {SVG[props.style || "星形"] || props.style}
@@ -16,8 +24,9 @@ function render(ref) {
 function click(e, ref, v) {
     const { props, setForm } = ref
     if (props.readonly) return
-    setForm && props.dbf ? setForm(props.dbf, v) : ref.value = v
+    ref.form ? ref.form[props.dbf] = v : ref.setForm(props.dbf, v)
     if (props.change) ref.exc(props.change, { ...ref.ctx, $val: v }, () => ref.exc("render()"))
+    ref.render()
 }
 
 const css = `
@@ -27,11 +36,11 @@ const css = `
     margin-right: 8px;
     font-size: 20px;
     cursor: pointer;
-    transition: all 0.3s;
+    transition: all 0.1s;
     color: #e8e8e8;
 }
 .zp127rated {
-    color: #fadb14;
+    color: var(--main-color);
 }
 .zp127item:hover {
     transform: scale(1.1);
@@ -42,8 +51,12 @@ $plugin({
     id: "zp127",
     props: [{
         prop: "dbf",
-        type: "text",
-        label: "表单字段"
+        label: "字段名",
+        ph: "必填"
+    }, {
+        prop: "form",
+        label: "字段容器",
+        ph: "如不填则使用祖先节点的表单容器"
     }, {
         prop: "style",
         type: "select",
